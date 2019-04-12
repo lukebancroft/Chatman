@@ -1,0 +1,67 @@
+﻿<Window x:Class="Chatman.Login"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Chatman"
+        mc:Ignorable="d"
+        x:Name="LoginWindow"
+        Title="Login" Height="335" Width="300">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="1*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+        </Grid.RowDefinitions>
+        <Label Grid.Column="0" 
+               Grid.ColumnSpan="2" 
+               FontSize="20"
+               HorizontalContentAlignment="Center" 
+               VerticalContentAlignment="Center" 
+               Content="Login to your account"/>
+        <TextBlock Grid.Column="0" 
+                   Grid.Row="1"
+                   FontSize="15"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Center" >Username :</TextBlock>
+        <TextBox Grid.Column="1" 
+                 Grid.Row="1"
+                 VerticalContentAlignment="Center"
+                 Margin="10"
+                 Name="id"
+                 Text="{Binding LoginUsername}"></TextBox>
+        <TextBlock Grid.Column="0" 
+                   Grid.Row="2"
+                   FontSize="15"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Center" >Password :</TextBlock>
+        <PasswordBox Grid.Column="1" 
+                 Grid.Row="2"
+                 VerticalContentAlignment="Center"
+                 Margin="10"
+                 x:Name="LoginPassword"
+                 PasswordChanged="OnPasswordChanged"></PasswordBox>
+        <Button Grid.Row="3" Grid.Column="0"
+                Width="40"
+                Height="20" 
+                FontSize="15"
+                HorizontalAlignment="Right"
+                Margin="5"
+                Style="{StaticResource btn-success}"
+                Command="{Binding LoginCommand}"
+                CommandParameter="{Binding ElementName=LoginWindow}">Login</Button>
+        <Button Grid.Row="3" Grid.Column="1"
+                Width="40"
+                Height="20" 
+                FontSize="15"
+                HorizontalAlignment="Left"
+                Margin="5"
+                Style="{StaticResource btn-primary}"
+                Command="{Binding OpenRegisterCommand}">Register</Button>
+    </Grid>
+</Window>
