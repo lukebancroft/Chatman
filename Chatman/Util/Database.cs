@@ -59,6 +59,12 @@ namespace Chatman
             return (connection.ExecuteScalar<int>("SELECT count(*) FROM USER WHERE NICKNAME = ?", new Object[] { nickname }) == 1) ? true : false;
         }
 
+        public bool checkMessageExists(string body, int sender_id, int receiver_id, DateTime date)
+        {
+            return (connection.ExecuteScalar<int>("SELECT count(*) FROM MESSAGE WHERE BODY = ? "
+                + "AND SENDER = ? AND RECEIVER = ? AND DATE = ?", new Object[] { body, sender_id, receiver_id, date }) >= 1) ? true : false;
+        }
+
         public void createNewUser(string nickName, string token, bool isCurrentUser)
         {
             Connection.Query<User>("INSERT INTO USER (NICKNAME, TOKEN, ISCURRENTUSER) " +

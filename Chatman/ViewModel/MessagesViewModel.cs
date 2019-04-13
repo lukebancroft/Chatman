@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
+using System.Timers;
 using System.Windows;
 using Flurl.Http;
 using Newtonsoft.Json;
@@ -28,6 +29,8 @@ namespace Chatman
         public RelayCommandParameter RegisterCommand { get; set; }
         public RelayCommand SendMessageCommand { get; set; }
 
+        private Timer fetchMsgTimer = new Timer();
+
 
         public MessagesViewModel()
         {
@@ -38,6 +41,9 @@ namespace Chatman
             LoginCommand = new RelayCommandParameter(LoginAsync, true);
             RegisterCommand = new RelayCommandParameter(RegisterAsync, true);
             SendMessageCommand = new RelayCommand(SendMessageAsync);
+
+            fetchMsgTimer.Elapsed += new ElapsedEventHandler(timerFetch);
+            fetchMsgTimer.Interval = 5000;
         }
 
         public ObservableCollection<User> Users
@@ -116,6 +122,7 @@ namespace Chatman
                     currentUser = db.getCurrentUser();
 
                     FetchMessages();
+                    fetchMsgTimer.Start();
 
                     MainWindow mainWindow = new MainWindow(this);
                     mainWindow.Show();
@@ -213,6 +220,52 @@ namespace Chatman
             }
         }
 
+        private async void timerFetch(object sender, ElapsedEventArgs e)
+        {
+            try
+            {
+                bool newUserFetched = false;
+
+                var responseString = await "http://baobab.tokidev.fr/api/fetchMessages"
+                    .WithOAuthBearerToken(currentUser.Token)
+                    .GetJsonListAsync();
+
+                User senderUser;
+
+                foreach (dynamic element in responseString)
+                {
+                    if (!db.checkUserExists(element.author))
+                    {
+                        db.createNewUser(element.author, null, false);
+                        newUserFetched = true;
+                    }
+                    senderUser = db.getUserByNickname(element.author);
+
+                    if(!db.checkMessageExists(element.msg, senderUser.Id, currentUser.Id, element.dateCreated))
+                    {
+                        db.createNewMessage(element.msg, senderUser.Id, currentUser.Id, element.dateCreated);
+                    }
+                }
+
+                GetMessagesForCurrentUsers();
+
+                if (newUserFetched)
+                {
+                    foreach (User user in db.getAllContacts())
+                    {
+                        App.Current.Dispatcher.Invoke((Action)delegate
+                        {
+                            Users.Add(user);
+                        });
+                    }
+                }
+            }
+            catch (FlurlHttpException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
         private void GetMessagesForCurrentUsers()
         {
             List<Message> newMessages = new List<Message>();
@@ -224,11 +277,17 @@ namespace Chatman
                               orderby msgs.Date ascending
                               select msgs);
             }
+            App.Current.Dispatcher.Invoke((Action)delegate
+            {
+                Messages.Clear();
+            });
 
-            Messages.Clear();
             foreach (Message msg in newMessages)
             {
-                Messages.Add(msg);
+                App.Current.Dispatcher.Invoke((Action)delegate
+                {
+                    Messages.Add(msg);
+                });
             }
         }
 
